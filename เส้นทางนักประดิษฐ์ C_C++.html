@@ -1,0 +1,265 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>เส้นทางนักประดิษฐ์ C/C++</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: datasheet-style single column; stages read like sections of a part's reference manual, copper = the one accent */
+:root{
+  --bg:#eef1f4; --paper:#fbfcfd; --ink:#16202c; --muted:#5a6878; --line:#cfd7e0;
+  --copper:#b2561c; --copper-soft:#f5e3d6; --ok:#2f7d4f; --ok-soft:#dcefe3;
+  --f-display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10161d; --paper:#171f28; --ink:#e3e9ef; --muted:#93a1b0; --line:#2b3744;
+  --copper:#e08a4f; --copper-soft:#3a271b; --ok:#6cc792; --ok-soft:#1d3428; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10161d; --paper:#171f28; --ink:#e3e9ef; --muted:#93a1b0; --line:#2b3744;
+  --copper:#e08a4f; --copper-soft:#3a271b; --ok:#6cc792; --ok-soft:#1d3428; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:28px 64px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.25;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.7rem);font-weight:700}
+h2{font-size:1.45rem;font-weight:700}
+h3{font-size:1rem;font-weight:600;font-family:var(--f-body)}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-size:.82rem;letter-spacing:.04em}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--copper)}
+header{display:flex;flex-direction:column;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:20px}
+header p{color:var(--muted);max-width:62ch}
+.overall{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--copper);transition:width .3s}
+.overall .row{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid var(--line)}
+nav a{flex:0 0 auto;font-family:var(--f-mono);font-size:.78rem;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--paper);padding:5px 10px;border-radius:3px}
+nav a:hover,nav a:focus-visible{border-color:var(--copper);color:var(--copper);outline:none}
+/* timeline */
+.timeline{overflow-x:auto}
+.tl{min-width:560px;display:grid;grid-template-columns:110px repeat(26,1fr);gap:3px 1px;font-family:var(--f-mono);font-size:.72rem;align-items:center}
+.tl .lbl{color:var(--muted);padding-right:8px;white-space:nowrap}
+.tl .seg{height:18px;background:var(--copper);border-radius:2px}
+.tl .seg.b{background:var(--copper-soft);border:1px dashed var(--copper)}
+.tl .wk{color:var(--muted);text-align:center;font-size:.62rem}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{width:14px;height:10px;background:var(--copper);display:inline-block;border-radius:2px}
+.legend i.b{background:var(--copper-soft);border:1px dashed var(--copper)}
+section{display:flex;flex-direction:column;gap:14px}
+.stage{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:20px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:60px}
+.stage-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.stage-head .t{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pill{font-family:var(--f-mono);font-size:.75rem;padding:3px 8px;border-radius:3px;background:var(--copper-soft);color:var(--copper);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill.done{background:var(--ok-soft);color:var(--ok)}
+.goal{color:var(--muted);max-width:65ch}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:640px){.cols{grid-template-columns:1fr}}
+.cols>div{min-width:0;display:flex;flex-direction:column;gap:8px}
+.group h3{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+ul.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+ul.check label{display:flex;gap:10px;align-items:flex-start;padding:4px 0;cursor:pointer}
+ul.check input{margin-top:6px;accent-color:var(--copper);width:16px;height:16px;flex:0 0 auto}
+ul.check input:checked+span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:4px}
+code{font-family:var(--f-mono);font-size:.85em;background:var(--bg);padding:1px 5px;border-radius:3px}
+.exam{border-top:1px dashed var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.exam ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.trap{background:var(--copper-soft);border-radius:3px;padding:10px 14px;font-size:.92rem}
+.trap b{color:var(--copper)}
+a{color:var(--copper)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+.tablewrap{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:4px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.time{font-family:var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.rule{border-left:3px solid var(--copper);padding:4px 0 4px 12px;display:flex;flex-direction:column;gap:2px}
+.rule b{font-family:var(--f-display)}
+.reset{align-self:flex-start;font-family:var(--f-mono);font-size:.78rem;background:transparent;color:var(--muted);border:1px solid var(--line);padding:6px 12px;border-radius:3px;cursor:pointer}
+.reset:hover,.reset:focus-visible{color:var(--copper);border-color:var(--copper);outline:none}
+.reset.arm{color:#fff;background:var(--copper);border-color:var(--copper)}
+footer{color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">REV 1.0 · แผนเร่ง 6 เดือน (ยืดได้ถึง 8)</span>
+  <h1>เส้นทางนักประดิษฐ์ C/C++</h1>
+  <p>ของยางพารา จาก pointer ตัวแรกไปจนถึงออกแบบระบบหุ่นยนต์ได้ทั้งตัว ไม่มีชิ้นงานบังคับ มีแค่ด่าน ผ่านด่านไหนแล้วจะประดิษฐ์อะไรก็เรื่องของเธอ ติ๊กหัวข้อที่ทำได้จริงเท่านั้น หน้านี้จำไว้ให้ในเบราว์เซอร์เครื่องนี้</p>
+  <div class="overall">
+    <div class="row"><span>ความคืบหน้ารวม</span><span id="ov">0 / 0</span></div>
+    <div class="bar"><i id="ovbar"></i></div>
+  </div>
+</header>
+
+<nav id="nav" aria-label="ไปยังด่าน"></nav>
+
+<section id="timeline">
+  <span class="eyebrow">ไทม์ไลน์ · 26 สัปดาห์</span>
+  <div class="timeline"><div class="tl" id="tl"></div></div>
+  <div class="legend"><span><i></i>ช่วงหลัก</span><span><i class="b"></i>ช่วงเรียนคู่ / ทับซ้อน</span></div>
+</section>
+
+<div id="stages" style="display:flex;flex-direction:column;gap:20px"></div>
+
+<section id="time">
+  <span class="eyebrow">ตารางเวลา</span>
+  <h2>เรียนช่วงไหน กี่ชั่วโมง</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>วัน</th><th>ช่วงเวลา</th><th>ทำอะไร</th></tr></thead>
+    <tbody>
+      <tr><td>จ.–ศ.</td><td class="time">06:30–07:00</td><td>(ถ้าตื่นไหว) ทบทวนของเมื่อวาน อ่านทฤษฎีใหม่ 1 หัวข้อ</td></tr>
+      <tr><td>จ.–ศ.</td><td class="time">18:30–19:15</td><td>รอบ 1 · เขียนโค้ดตามหัวข้อของวัน</td></tr>
+      <tr><td>จ.–ศ.</td><td class="time">19:25–20:10</td><td>รอบ 2 · ลองบนฮาร์ดแวร์ / แก้บั๊ก</td></tr>
+      <tr><td>จ.–ศ.</td><td class="time">20:20–21:05</td><td>รอบ 3 · ทดลองต่อยอดเอง จดสิ่งที่ยังไม่เข้าใจ</td></tr>
+      <tr><td>จ.–ศ.</td><td class="time">21:05 →</td><td>เกมได้ <b>หลังจากนี้เท่านั้น</b></td></tr>
+      <tr><td>ส.</td><td class="time">09:00–12:00 · 13:30–15:30</td><td>ลงมือสร้าง ประกอบความรู้ทั้งสัปดาห์เป็นของชิ้นเดียว</td></tr>
+      <tr><td>อา.</td><td class="time">10:00–13:00</td><td>สร้างต่อ แล้วเขียนสรุปสั้นๆ ว่าสัปดาห์นี้ได้อะไร</td></tr>
+      <tr><td>เลือก 1 วัน</td><td class="time">—</td><td>วันพัก หยุดได้แค่วันเดียวต่อสัปดาห์</td></tr>
+    </tbody>
+  </table></div>
+  <p class="mono" style="color:var(--muted)">รวม ≈ 20 ชม./สัปดาห์ · สัปดาห์สอบลดเหลือ 1 ชม./วันได้ แต่ห้ามเป็น 0</p>
+</section>
+
+<section id="rules">
+  <span class="eyebrow">กฎเหล็ก</span>
+  <h2>ห้ามต่อรอง</h2>
+  <div class="rules">
+    <div class="rule"><b>30 / 70</b><span>อ่านหรือดูคลิป 30% เขียนโค้ดเอง 70% ดูเกินนี้คือหลอกตัวเอง</span></div>
+    <div class="rule"><b>ห้ามข้ามด่านเพราะเบื่อ</b><span>ข้ามได้ด้วยการสอบผ่านเท่านั้น</span></div>
+    <div class="rule"><b>หยุดไม่เกิน 3 วันติด</b><span>ช้าได้ แต่ห้ามดับ</span></div>
+    <div class="rule"><b>เกมคือรางวัล</b><span>เปิดเกมก่อนเรียน = แพ้ทั้งวัน</span></div>
+    <div class="rule"><b>Git ทุกวัน</b><span>commit ทุกครั้งที่เรียนจบรอบ เป็นหลักฐานว่าทำจริง</span></div>
+    <div class="rule"><b>จบด่านต้องสอบ</b><span>มาตอบคำถามสอบท้ายด่านกับฉัน ตอบไม่ได้กลับไปทำซ้ำ</span></div>
+  </div>
+</section>
+
+<section id="kit">
+  <span class="eyebrow">ของที่ต้องมี</span>
+  <h2>ชุดอุปกรณ์ขั้นต่ำ</h2>
+  <ul class="plain">
+    <li><b>STM32 Nucleo-F401RE</b> หรือ Blue Pill + ST-Link · บอร์ดหลักสำหรับเรียน register</li>
+    <li><b>ESP32 DevKit</b> · ไว้ทำงาน Wi-Fi/Bluetooth และ FreeRTOS</li>
+    <li><b>Logic analyzer 24MHz 8ch</b> ราคาถูก + โปรแกรม PulseView · ดู UART/I2C/SPI ด้วยตาตัวเอง</li>
+    <li>มัลติมิเตอร์, breadboard, LED, ปุ่ม, ตัวต้านทาน, เซนเซอร์ IMU (MPU6050), มอเตอร์ DC + driver, servo</li>
+    <li>บอร์ดจ่ายไฟ LM317 ที่ทำเองก็เอามาใช้ได้</li>
+    <li>คอมที่ลง Linux (dual boot หรือ WSL2) ตั้งแต่ด่าน 1</li>
+  </ul>
+</section>
+
+<button class="reset" id="reset" type="button">ล้างการติ๊กทั้งหมด</button>
+<footer>ทำเสร็จด่านไหนแล้ว กลับมาบอกฉัน ฉันจะสอบเธอเอง</footer>
+</div>
+
+<script>
+const STAGES=[
+{id:"s1",code:"ST-01",name:"C พื้นฐานถึงขั้นแน่น",weeks:"สัปดาห์ 1–5",span:[1,5],
+ goal:"เข้าใจว่าโค้ด C กลายเป็นไบต์ในหน่วยความจำยังไง จนวาดภาพ memory ของโปรแกรมตัวเองได้",
+ groups:[
+  ["เครื่องมือ",["ตั้ง Linux/WSL2 + gcc + VS Code","คอมไพล์ด้วยมือ: <code>gcc -Wall -Wextra -g</code>","รู้ 4 ขั้น: preprocess → compile → assemble → link","ใช้ gdb: breakpoint, step, print, backtrace","เขียน Makefile แบบง่าย","Git: init, commit, branch, push ขึ้น GitHub"]],
+  ["ภาษา",["ชนิดข้อมูลและขนาด, <code>stdint.h</code> (uint8_t, int32_t)","operator, control flow, loop","function, scope, <code>static</code>, <code>extern</code>","array และ string แบบ null-terminated","pointer, address, dereference","pointer arithmetic, pointer กับ array","pointer to pointer (<code>int **p</code>)","function pointer","struct, union, enum, typedef","stack vs heap, malloc/calloc/free","memory leak, dangling pointer, ตรวจด้วย valgrind","bitwise: & | ^ ~ << >> และการ set/clear/toggle bit","แยกไฟล์ .h/.c, include guard","<code>const</code>, <code>volatile</code> (ทฤษฎี)"]]],
+ exam:["อธิบายด้วยภาพว่า <code>int *p</code> กับ <code>int **p</code> ต่างกันยังไงในหน่วยความจำ","ทำไม return pointer ของตัวแปร local ถึงพัง","เขียน macro set/clear bit ที่ n โดยไม่ดูโน้ต","แก้ segfault ที่ฉันเตรียมไว้ให้ ภายใน 15 นาทีด้วย gdb"],
+ trap:"ติดดูคลิป pointer ซ้ำๆ แทนที่จะเขียนเอง ให้วาดกล่อง memory บนกระดาษทุกครั้งที่งง",
+ res:[["The C Programming Language (K&R)",""],["Modern C · Jens Gustedt (ฟรี)","https://gustedt.gitlabpages.inria.fr/modern-c/"],["Beej's Guide to C","https://beej.us/guide/bgc/"]]},
+{id:"s2",code:"ST-02",name:"C บนฮาร์ดแวร์จริง",weeks:"สัปดาห์ 3–9",span:[3,9],blend:[3,5],
+ goal:"คุมไมโครคอนโทรลเลอร์ผ่าน register ได้เอง โดยไม่ต้องพึ่ง Arduino library",
+ groups:[
+  ["พื้นฐาน MCU",["อ่าน datasheet และ reference manual เป็น","memory map, register, clock tree","ใช้ STM32CubeIDE หรือ toolchain arm-none-eabi","flash และ debug ผ่าน ST-Link","GPIO output/input ด้วย register ตรง","pull-up/pull-down, debounce ปุ่ม"]],
+  ["Peripheral",["Timer และ delay ที่ไม่ใช้ busy-wait","Interrupt, NVIC, ISR ที่สั้นและปลอดภัย","PWM คุม LED และมอเตอร์","ADC อ่านค่า analog","UART: ส่ง printf ออกคอม","I2C: อ่านเซนเซอร์ MPU6050","SPI: คุยกับจอหรือ SD card","DMA เบื้องต้น"]],
+  ["ดีบักฮาร์ดแวร์",["ใช้ logic analyzer ดูสัญญาณ UART/I2C/SPI","ใช้มัลติมิเตอร์เช็กไฟและ continuity","เข้าใจ <code>volatile</code> จากของจริง","อ่าน schematic บอร์ดตัวเองออก"]]],
+ exam:["วาด flow ว่ากดปุ่มแล้วเกิดอะไรขึ้นจนถึง ISR ทำงาน","ทำไมตัวแปรที่แชร์กับ ISR ต้อง <code>volatile</code>","อ่านกราฟ I2C จาก logic analyzer แล้วบอก address กับข้อมูล","คำนวณ prescaler/period ให้ได้ PWM 1 kHz"],
+ trap:"กลับไปใช้ <code>digitalWrite</code> ทุกครั้งที่ติด ทำได้แค่ตอนเทียบผล ห้ามใช้แทน",
+ res:[["Making Embedded Systems · Elecia White",""],["STM32 reference manual ของชิปที่ใช้",""],["Embedded Systems Programming · Bare-metal series (vivonomicon)","https://vivonomicon.com/"]]},
+{id:"s3",code:"ST-03",name:"Modern C++",weeks:"สัปดาห์ 10–14",span:[10,14],
+ goal:"เขียน C++ แบบมืออาชีพ ให้ภาษาจัดการทรัพยากรแทนการไล่ free เอง",
+ groups:[
+  ["แกนภาษา",["reference vs pointer","class, access, constructor/destructor","initializer list, <code>explicit</code>","const-correctness","operator overloading เท่าที่จำเป็น","namespace","inheritance, virtual, polymorphism และต้นทุนของมัน","composition มากกว่า inheritance"]],
+  ["Modern (11/14/17)",["<b>RAII</b> ให้เข้าใจถึงแก่น","unique_ptr, shared_ptr (และเมื่อไม่ควรใช้)","move semantics, rule of 0/3/5","<code>auto</code>, range-for, lambda","STL: vector, array, map, unordered_map","algorithm: sort, find_if, transform","<code>std::optional</code>, <code>enum class</code>","template เบื้องต้น, <code>constexpr</code>"]],
+  ["เครื่องมือ",["CMake โปรเจกต์หลายไฟล์","unit test ด้วย GoogleTest หรือ Catch2","clang-format, compiler warnings เต็มที่","AddressSanitizer"]]],
+ exam:["อธิบาย RAII พร้อมยกตัวอย่างที่ป้องกัน leak ได้","ทำไม unique_ptr ถึง copy ไม่ได้ แต่ move ได้","เลือก container ให้ 3 สถานการณ์ที่ฉันให้ พร้อมเหตุผล","โค้ดเธอยังมี <code>new</code>/<code>delete</code> ลอยๆ อยู่ไหม"],
+ trap:"เขียน C++ ด้วยสมอง C (malloc + char array) ไม่ผิดไวยากรณ์ แต่เสียของ",
+ res:[["learncpp.com","https://www.learncpp.com/"],["A Tour of C++ · Bjarne Stroustrup",""],["cppreference.com","https://en.cppreference.com/"]]},
+{id:"s4",code:"ST-04",name:"Firmware ระดับระบบ",weeks:"สัปดาห์ 12–19",span:[12,19],blend:[12,14],
+ goal:"ออกแบบ firmware ที่มีหลายงานรันพร้อมกันได้ โดยไม่พังแบบสุ่ม",
+ groups:[
+  ["RTOS",["FreeRTOS: task, priority, scheduler","queue สำหรับส่งข้อมูลระหว่าง task","mutex, semaphore, priority inversion","stack size และการตรวจ stack overflow","software timer, event group"]],
+  ["สถาปัตยกรรม",["state machine แบบ table/enum","แบ่งชั้น HAL → driver → application","C++ บน MCU: ห้าม exception, ระวัง heap","ring buffer สำหรับ UART","watchdog, error handling, fail-safe"]],
+  ["ควบคุมและเซนเซอร์",["PID: P, I, D ทำหน้าที่อะไร และจูนยังไง","encoder วัดความเร็วมอเตอร์","complementary filter รวม gyro + accel","Kalman filter แนวคิด","ออกแบบ protocol ส่งข้อมูล MCU ↔ PC"]]],
+ exam:["race condition คืออะไร ยกตัวอย่างจากโค้ดตัวเอง","อธิบาย priority inversion และวิธีแก้","ทำไมเทอม I ใน PID ถึงทำให้ overshoot และแก้ยังไง","วาด state machine ของระบบที่เธอออกแบบเอง"],
+ trap:"ใส่ delay ใน task ทุกตัวแล้วหวังว่าจะเวิร์ก ถ้าไม่เข้าใจ scheduler จะเจอบั๊กที่เกิดวันละครั้ง",
+ res:[["Mastering the FreeRTOS Kernel (ฟรี)","https://www.freertos.org/Documentation/02-Kernel/07-Books-and-manual/01-RTOS_book"],["Brett Beauregard · Improving the Beginner's PID","http://brettbeauregard.com/blog/2011/04/improving-the-beginners-pid-introduction/"]]},
+{id:"s5",code:"ST-05",name:"Robotics stack",weeks:"สัปดาห์ 20–26",span:[20,26],
+ goal:"มองระบบหุ่นยนต์ทั้งตัวออก ว่าส่วนไหนรันบนอะไร และคุยกันยังไง",
+ groups:[
+  ["Linux",["ใช้ terminal คล่อง, bash script","ระบบไฟล์, permission, process","SSH เข้า Raspberry Pi หรือ SBC","serial device บน Linux (<code>/dev/ttyUSB0</code>)"]],
+  ["ROS 2",["node, topic, publisher/subscriber","service, action, parameter","launch file","เขียน node ด้วย C++ (rclcpp)","TF2 และ coordinate frame","RViz, rosbag","micro-ROS เชื่อม MCU เข้ากับ ROS 2"]],
+  ["การรับรู้และการเคลื่อนที่",["kinematics ของรถ differential drive","forward/inverse kinematics แขน 2 ข้อต่อ","OpenCV: อ่านกล้อง, threshold, contour","odometry เบื้องต้น","รู้จัก PX4/ArduPilot ว่าโดรนแบ่งงานยังไง"]]],
+ exam:["วาดแผนผังระบบหุ่นยนต์ที่อยากสร้าง ทุกกล่องต้องบอกว่ารันบนอะไร","อธิบายว่าทำไมงาน real-time ต้องอยู่บน MCU ไม่ใช่บน Linux","topic กับ service ต่างกันยังไง เมื่อไหร่ใช้อันไหน"],
+ trap:"กระโดดมาเล่น ROS 2 ก่อนผ่านด่าน 4 จะได้หุ่นที่ขยับในจอแต่ไม่ขยับในโลกจริง",
+ res:[["ROS 2 Documentation","https://docs.ros.org/"],["Modern Robotics · Lynch & Park (ฟรี)","http://hades.mech.northwestern.edu/index.php/Modern_Robotics"],["OpenCV tutorials","https://docs.opencv.org/4.x/d9/df8/tutorial_root.html"]]}
+];
+
+const store={get(){try{return JSON.parse(localStorage.getItem("rm-yp")||"{}")}catch(e){return{}}},set(v){try{localStorage.setItem("rm-yp",JSON.stringify(v))}catch(e){}}};
+let state=store.get();
+
+// timeline
+const tl=document.getElementById("tl");
+let h='<span class="lbl"></span>';
+for(let w=1;w<=26;w++)h+=`<span class="wk">${w%2?w:""}</span>`;
+STAGES.forEach(s=>{
+  h+=`<span class="lbl">${s.code}</span>`;
+  for(let w=1;w<=26;w++){
+    const on=w>=s.span[0]&&w<=s.span[1];
+    const b=s.blend&&w>=s.blend[0]&&w<=s.blend[1];
+    h+=on?`<span class="seg${b?" b":""}"></span>`:"<span></span>";
+  }
+});
+tl.innerHTML=h;
+
+// nav + stages
+document.getElementById("nav").innerHTML=STAGES.map(s=>`<a href="#${s.id}">${s.code}</a>`).join("")+'<a href="#time">เวลา</a><a href="#rules">กฎ</a><a href="#kit">อุปกรณ์</a>';
+document.getElementById("stages").innerHTML=STAGES.map(s=>{
+  let k=0;
+  const groups=s.groups.map(g=>`<div class="group"><h3>${g[0]}</h3><ul class="check">${g[1].map(t=>{const id=`${s.id}-${g[0]}-${k++}`;return `<li><label><input type="checkbox" id="${id}" data-s="${s.id}"><span>${t}</span></label></li>`}).join("")}</ul></div>`);
+  const half=Math.ceil(groups.length/2);
+  return `<article class="stage" id="${s.id}">
+    <div class="stage-head"><div class="t"><span class="eyebrow">${s.code} · ${s.weeks}</span><h2>${s.name}</h2></div><span class="pill" id="p-${s.id}"></span></div>
+    <div class="bar"><i id="b-${s.id}"></i></div>
+    <p class="goal">${s.goal}</p>
+    <div class="cols"><div>${groups.slice(0,half).join("")}</div><div>${groups.slice(half).join("")}</div></div>
+    <div class="exam"><h3>ข้อสอบผ่านด่าน (ตอบฉันให้ได้)</h3><ol>${s.exam.map(e=>`<li>${e}</li>`).join("")}</ol></div>
+    <div class="trap"><b>กับดัก:</b> ${s.trap}</div>
+    <div class="group"><h3>แหล่งเรียน</h3><ul class="plain">${s.res.map(r=>`<li>${r[1]?`<a href="${r[1]}" target="_blank" rel="noopener">${r[0]}</a>`:r[0]}</li>`).join("")}</ul></div>
+  </article>`;
+}).join("");
+
+const boxes=[...document.querySelectorAll('ul.check input')];
+function render(){
+  let all=0,done=0;
+  STAGES.forEach(s=>{
+    const bs=boxes.filter(b=>b.dataset.s===s.id),d=bs.filter(b=>b.checked).length;
+    all+=bs.length;done+=d;
+    const p=document.getElementById("p-"+s.id);
+    p.textContent=d===bs.length?"ผ่านเนื้อหาแล้ว · ไปสอบ":`${d} / ${bs.length}`;
+    p.classList.toggle("done",d===bs.length);
+    document.getElementById("b-"+s.id).style.width=(d/bs.length*100)+"%";
+  });
+  document.getElementById("ov").textContent=`${done} / ${all} · ${Math.round(done/all*100)}%`;
+  document.getElementById("ovbar").style.width=(done/all*100)+"%";
+}
+boxes.forEach(b=>{b.checked=!!state[b.id];b.addEventListener("change",()=>{state[b.id]=b.checked;store.set(state);render()})});
+render();
+
+const rb=document.getElementById("reset");let armed=false,tm;
+rb.addEventListener("click",()=>{
+  if(!armed){armed=true;rb.classList.add("arm");rb.textContent="กดอีกครั้งเพื่อยืนยัน";tm=setTimeout(()=>{armed=false;rb.classList.remove("arm");rb.textContent="ล้างการติ๊กทั้งหมด"},3000);return}
+  clearTimeout(tm);armed=false;state={};store.set(state);boxes.forEach(b=>b.checked=false);render();
+  rb.classList.remove("arm");rb.textContent="ล้างแล้ว";setTimeout(()=>rb.textContent="ล้างการติ๊กทั้งหมด",1500);
+});
+</script>
+
+</body></html>
